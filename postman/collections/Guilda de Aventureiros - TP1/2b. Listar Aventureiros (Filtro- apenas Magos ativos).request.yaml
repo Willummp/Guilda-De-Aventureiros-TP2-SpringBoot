@@ -1,0 +1,10 @@
+$kind: http-request
+name: "2b. Listar Aventureiros (Filtro: apenas Magos ativos)"
+url: localhost:8080/aventureiros?classe=MAGO&ativo=true&page=0&size=10
+method: GET
+queryParams:
+  classe: MAGO
+  ativo: "true"
+  page: "0"
+  size: "10"
+order: 4000

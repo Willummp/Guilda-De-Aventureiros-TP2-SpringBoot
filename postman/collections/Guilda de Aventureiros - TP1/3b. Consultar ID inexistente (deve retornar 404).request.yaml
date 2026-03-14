@@ -1,0 +1,4 @@
+$kind: http-request
+url: localhost:8080/aventureiros/9999
+method: GET
+order: 7000

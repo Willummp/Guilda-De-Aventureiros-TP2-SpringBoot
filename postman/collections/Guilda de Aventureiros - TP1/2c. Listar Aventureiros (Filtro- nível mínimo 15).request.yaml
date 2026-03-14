@@ -1,0 +1,7 @@
+$kind: http-request
+name: "2c. Listar Aventureiros (Filtro: nível mínimo 15)"
+url: localhost:8080/aventureiros?nivel=15
+method: GET
+queryParams:
+  nivel: "15"
+order: 5000

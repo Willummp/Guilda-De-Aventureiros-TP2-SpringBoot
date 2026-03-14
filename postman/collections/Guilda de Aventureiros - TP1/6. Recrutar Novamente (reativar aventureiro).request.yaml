@@ -1,0 +1,4 @@
+$kind: http-request
+url: localhost:8080/aventureiros/1/recrutar
+method: PATCH
+order: 10000

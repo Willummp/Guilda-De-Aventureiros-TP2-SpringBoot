@@ -1,0 +1,9 @@
+$kind: http-request
+url: localhost:8080/aventureiros
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: ""
+order: 1000

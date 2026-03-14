@@ -1,0 +1,9 @@
+$kind: http-request
+url: localhost:8080/aventureiros/1/companheiro
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: ""
+order: 11000
