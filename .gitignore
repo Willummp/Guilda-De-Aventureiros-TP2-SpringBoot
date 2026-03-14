@@ -1,0 +1,29 @@
+# Pasta de build do Maven — nunca deve ser commitada
+target/
+
+# Arquivos de configuração local do IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Arquivos de configuração do Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# Arquivos de configuração do VSCode
+.vscode/
+
+# Arquivos de log
+*.log
+logs/
+
+# Variáveis de ambiente locais
+.env
+.env.local
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
