@@ -1,69 +1,55 @@
 package br.com.guilda.aventureiros.domain;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
+
 /**
  * Representa um Companheiro vinculado a um Aventureiro.
- * <p>
- * O companheiro existe apenas como parte do aventureiro.
- * Não pode existir isoladamente nem ser compartilhado entre aventureiros.
- * </p>
+ * Não pode existir isoladamente. Remoção em cascata via Aventureiro.
  */
+@Entity
+@Table(schema = "aventura", name = "companheiros")
 public class Companheiro {
 
-    /**
-     * O nome do companheiro.
-     */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "aventureiro_id", nullable = false, unique = true)
+    private Aventureiro aventureiro;
+
+    @Size(max = 120)
+    @Column(nullable = false, length = 120)
     private String nome;
 
-    /**
-     * A espécie do companheiro (LOBO, CORUJA, GOLEM, DRAGAO_MINIATURA).
-     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Especie especie;
 
-    /**
-     * Nível de lealdade do companheiro, de 0 a 100.
-     */
+    @Min(0)
+    @Max(100)
+    @Column(nullable = false)
     private Integer lealdade;
 
-    /**
-     * Construtor padrão necessário para frameworks de desserialização (como o Jackson do Spring).
-     */
-    public Companheiro() {
-    }
+    public Companheiro() {}
 
-    /**
-     * Construtor completo do companheiro.
-     *
-     * @param nome o nome do companheiro
-     * @param especie a espécie do companheiro
-     * @param lealdade nível de lealdade (0 a 100)
-     */
     public Companheiro(String nome, Especie especie, Integer lealdade) {
         this.nome = nome;
         this.especie = especie;
         this.lealdade = lealdade;
     }
 
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public Especie getEspecie() {
-        return especie;
-    }
-
-    public void setEspecie(Especie especie) {
-        this.especie = especie;
-    }
-
-    public Integer getLealdade() {
-        return lealdade;
-    }
-
-    public void setLealdade(Integer lealdade) {
-        this.lealdade = lealdade;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Aventureiro getAventureiro() { return aventureiro; }
+    public void setAventureiro(Aventureiro aventureiro) { this.aventureiro = aventureiro; }
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
+    public Especie getEspecie() { return especie; }
+    public void setEspecie(Especie especie) { this.especie = especie; }
+    public Integer getLealdade() { return lealdade; }
+    public void setLealdade(Integer lealdade) { this.lealdade = lealdade; }
 }
