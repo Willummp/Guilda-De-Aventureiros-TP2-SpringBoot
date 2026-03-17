@@ -35,5 +35,11 @@ jobs:
       - name: Compilar o projeto
         run: mvn clean compile --no-transfer-progress
 
+      - name: Iniciar Banco de Dados PostgreSQL (Imagem TP2)
+        run: docker run --name postgres-tp2 -p 5432:5432 -e POSTGRES_PASSWORD=postgres -d leogloriainfnet/postgres-tp2-spring:1.0
+        
+      - name: Aguardar inicialização do banco
+        run: sleep 10
+
       - name: Executar testes
         run: mvn test --no-transfer-progress
