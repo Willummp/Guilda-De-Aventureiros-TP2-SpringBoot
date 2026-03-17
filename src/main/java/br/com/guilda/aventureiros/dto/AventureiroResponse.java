@@ -2,10 +2,9 @@ package br.com.guilda.aventureiros.dto;
 
 import br.com.guilda.aventureiros.domain.Aventureiro;
 import br.com.guilda.aventureiros.domain.Classe;
-import br.com.guilda.aventureiros.domain.Companheiro;
 
 /**
- * Representa os dados completos de um Aventureiro quando consultado por ID.
+ * Representa os dados completos de um Aventureiro.
  */
 public class AventureiroResponse {
 
@@ -14,7 +13,10 @@ public class AventureiroResponse {
     private Classe classe;
     private Integer nivel;
     private boolean ativo;
-    private Companheiro companheiro;
+    private Long organizacaoId;
+    private CompanheiroResponse companheiro;
+    private Long totalMissoes;
+    private String ultimaMissao;
 
     public AventureiroResponse(Aventureiro aventureiro) {
         this.id = aventureiro.getId();
@@ -22,30 +24,26 @@ public class AventureiroResponse {
         this.classe = aventureiro.getClasse();
         this.nivel = aventureiro.getNivel();
         this.ativo = aventureiro.isAtivo();
-        this.companheiro = aventureiro.getCompanheiro();
+        this.organizacaoId = aventureiro.getOrganizacao() != null ? aventureiro.getOrganizacao().getId() : null;
+        if (aventureiro.getCompanheiro() != null) {
+            this.companheiro = new CompanheiroResponse(
+                    aventureiro.getCompanheiro().getNome(),
+                    aventureiro.getCompanheiro().getEspecie(),
+                    aventureiro.getCompanheiro().getLealdade()
+            );
+        }
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public Classe getClasse() {
-        return classe;
-    }
-
-    public Integer getNivel() {
-        return nivel;
-    }
-
-    public boolean isAtivo() {
-        return ativo;
-    }
-
-    public Companheiro getCompanheiro() {
-        return companheiro;
-    }
+    public Long getId() { return id; }
+    public String getNome() { return nome; }
+    public Classe getClasse() { return classe; }
+    public Integer getNivel() { return nivel; }
+    public boolean isAtivo() { return ativo; }
+    public Long getOrganizacaoId() { return organizacaoId; }
+    public CompanheiroResponse getCompanheiro() { return companheiro; }
+    
+    public Long getTotalMissoes() { return totalMissoes; }
+    public void setTotalMissoes(Long totalMissoes) { this.totalMissoes = totalMissoes; }
+    public String getUltimaMissao() { return ultimaMissao; }
+    public void setUltimaMissao(String ultimaMissao) { this.ultimaMissao = ultimaMissao; }
 }

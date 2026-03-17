@@ -6,50 +6,34 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * Representa os dados necessários para registrar um novo aventureiro.
+ * Dados para registrar ou atualizar um Aventureiro.
  */
 public class AventureiroRequest {
 
-    /**
-     * O nome do aventureiro. Obrigatório e não pode ser vazio.
-     */
     @NotBlank(message = "nome do aventureiro é obrigatório e não pode ser vazio")
     private String nome;
 
-    /**
-     * Classe escolhida. Deve ser uma das permitidas pela guilda (GUERREIRO, MAGO, etc).
-     */
     @NotNull(message = "classe inválida ou obrigatória")
     private Classe classe;
 
-    /**
-     * O nível do aventureiro, que deve ser positivo (>= 1).
-     */
     @NotNull(message = "nível é obrigatório")
     @Min(value = 1, message = "nivel deve ser maior ou igual a 1")
     private Integer nivel;
 
-    public String getNome() {
-        return nome;
-    }
+    @NotNull(message = "organizacaoId é obrigatório")
+    private Long organizacaoId;
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
+    @NotNull(message = "usuarioResponsavelId é obrigatório")
+    private Long usuarioResponsavelId;
 
-    public Classe getClasse() {
-        return classe;
-    }
-
-    public void setClasse(Classe classe) {
-        this.classe = classe;
-    }
-
-    public Integer getNivel() {
-        return nivel;
-    }
-
-    public void setNivel(Integer nivel) {
-        this.nivel = nivel;
-    }
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
+    public Classe getClasse() { return classe; }
+    public void setClasse(Classe classe) { this.classe = classe; }
+    public Integer getNivel() { return nivel; }
+    public void setNivel(Integer nivel) { this.nivel = nivel; }
+    public Long getOrganizacaoId() { return organizacaoId; }
+    public void setOrganizacaoId(Long organizacaoId) { this.organizacaoId = organizacaoId; }
+    public Long getUsuarioResponsavelId() { return usuarioResponsavelId; }
+    public void setUsuarioResponsavelId(Long usuarioResponsavelId) { this.usuarioResponsavelId = usuarioResponsavelId; }
 }

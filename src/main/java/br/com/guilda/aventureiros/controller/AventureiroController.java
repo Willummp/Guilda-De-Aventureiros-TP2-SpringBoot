@@ -1,5 +1,9 @@
 package br.com.guilda.aventureiros.controller;
 
+import br.com.guilda.aventureiros.audit.domain.Organizacao;
+import br.com.guilda.aventureiros.audit.domain.Usuario;
+import br.com.guilda.aventureiros.audit.repository.OrganizacaoRepository;
+import br.com.guilda.aventureiros.audit.repository.UsuarioRepository;
 import br.com.guilda.aventureiros.domain.Aventureiro;
 import br.com.guilda.aventureiros.domain.Classe;
 import br.com.guilda.aventureiros.domain.Companheiro;
@@ -9,7 +13,13 @@ import br.com.guilda.aventureiros.dto.AventureiroResumoResponse;
 import br.com.guilda.aventureiros.dto.CompanheiroRequest;
 import br.com.guilda.aventureiros.exception.RecursoNaoEncontradoException;
 import br.com.guilda.aventureiros.repository.AventureiroRepository;
+import br.com.guilda.aventureiros.repository.ParticipacaoRepository;
+import br.com.guilda.aventureiros.domain.Participacao;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,191 +29,167 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Endpoint REST principal para gerenciar o Registro Oficial da Guilda de Aventureiros.
- * Expõe as rotas de listagem, criação, atualização e vinculação de companheiros.
+ * Endpoint REST para gerenciar o Registro Oficial da Guilda de Aventureiros.
  */
 @RestController
 @RequestMapping("/aventureiros")
 public class AventureiroController {
 
-    private final AventureiroRepository repository;
+    private final AventureiroRepository aventureiroRepository;
+    private final OrganizacaoRepository organizacaoRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final ParticipacaoRepository participacaoRepository;
 
-    public AventureiroController(AventureiroRepository repository) {
-        this.repository = repository;
+    public AventureiroController(AventureiroRepository aventureiroRepository,
+                                  OrganizacaoRepository organizacaoRepository,
+                                  UsuarioRepository usuarioRepository,
+                                  ParticipacaoRepository participacaoRepository) {
+        this.aventureiroRepository = aventureiroRepository;
+        this.organizacaoRepository = organizacaoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.participacaoRepository = participacaoRepository;
     }
 
-    /**
-     * Registra um novo aventureiro na guilda.
-     * Por regra de negócio, o aventureiro entra como ativo e sem companheiro.
-     *
-     * @param request JSON com nome, classe e nivel
-     * @return O aventureiro criado (Status 201 Created)
-     */
     @PostMapping
     public ResponseEntity<AventureiroResponse> registrar(@Valid @RequestBody AventureiroRequest request) {
+        Organizacao org = organizacaoRepository.findById(request.getOrganizacaoId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("organização não encontrada"));
+        Usuario usuario = usuarioRepository.findById(request.getUsuarioResponsavelId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("usuário responsável não encontrado"));
+
         Aventureiro novo = new Aventureiro(request.getNome(), request.getClasse(), request.getNivel());
-        Aventureiro salvo = repository.save(novo);
-        
+        novo.setOrganizacao(org);
+        novo.setUsuarioResponsavel(usuario);
+        Aventureiro salvo = aventureiroRepository.save(novo);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(new AventureiroResponse(salvo));
     }
 
-    /**
-     * Lista aventureiros cadastrados, permitindo paginação e filtros.
-     *
-     * @param classe filtro opcional por classe
-     * @param ativo filtro opcional por status (true/false)
-     * @param nivel filtro opcional por nível mínimo
-     * @param page página desejada (começa em 0)
-     * @param size tamanho da página (entre 1 e 50)
-     * @return Lista paginada de AventureiroResumoResponse com headers de paginação (X-Total-Count, X-Page, etc)
-     */
     @GetMapping
     public ResponseEntity<List<AventureiroResumoResponse>> listar(
             @RequestParam(required = false) Classe classe,
             @RequestParam(required = false) Boolean ativo,
             @RequestParam(required = false) Integer nivel,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "nome") String sortBy
     ) {
-        // Validação básica da paginação
         if (page < 0) page = 0;
         if (size < 1) size = 1;
         if (size > 50) size = 50;
 
-        List<Aventureiro> todosFiltrados = repository.findByFilters(classe, ativo, nivel);
-        int totalElements = todosFiltrados.size();
-        int totalPages = (int) Math.ceil((double) totalElements / size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Page<Aventureiro> resultado = aventureiroRepository.findByFiltros(classe, ativo, nivel, pageable);
 
-        // Recorte da paginação (subList)
-        int fromIndex = page * size;
-        int toIndex = Math.min(fromIndex + size, totalElements);
-        
-        List<Aventureiro> pagina;
-        if (fromIndex >= totalElements) {
-            // Página além dos limites - retorna lista vazia
-            pagina = List.of();
-        } else {
-            pagina = todosFiltrados.subList(fromIndex, toIndex);
-        }
-
-        List<AventureiroResumoResponse> responseList = pagina.stream()
+        List<AventureiroResumoResponse> body = resultado.getContent().stream()
                 .map(AventureiroResumoResponse::new)
                 .collect(Collectors.toList());
 
-        // Configuração dos headers obrigatórios da Guilda
         HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Total-Count", String.valueOf(totalElements));
+        headers.add("X-Total-Count", String.valueOf(resultado.getTotalElements()));
         headers.add("X-Page", String.valueOf(page));
         headers.add("X-Size", String.valueOf(size));
-        headers.add("X-Total-Pages", String.valueOf(totalPages));
+        headers.add("X-Total-Pages", String.valueOf(resultado.getTotalPages()));
 
-        return ResponseEntity.ok().headers(headers).body(responseList);
+        return ResponseEntity.ok().headers(headers).body(body);
     }
 
-    /**
-     * Consulta as informações completas de um aventureiro específico (incluindo o companheiro, se existir).
-     *
-     * @param id identificador do aventureiro
-     * @return Dados completos do aventureiro
-     */
+    @GetMapping("/busca")
+    public ResponseEntity<List<AventureiroResumoResponse>> buscarPorNome(
+            @RequestParam String nome,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("nome"));
+        Page<Aventureiro> resultado = aventureiroRepository.findByNomeContainingIgnoreCase(nome, pageable);
+
+        List<AventureiroResumoResponse> body = resultado.getContent().stream()
+                .map(AventureiroResumoResponse::new)
+                .collect(Collectors.toList());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Total-Count", String.valueOf(resultado.getTotalElements()));
+        headers.add("X-Page", String.valueOf(page));
+        headers.add("X-Total-Pages", String.valueOf(resultado.getTotalPages()));
+
+        return ResponseEntity.ok().headers(headers).body(body);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<AventureiroResponse> consultar(@PathVariable Long id) {
-        Aventureiro aventureiro = repository.findById(id)
+        // Requisito: Perfil Completo (Aventureiro + Companheiro + Total Participações + Última Missão)
+        Aventureiro aventureiro = aventureiroRepository.findByIdWithCompanheiro(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("aventureiro não encontrado"));
-
-        return ResponseEntity.ok(new AventureiroResponse(aventureiro));
+        
+        AventureiroResponse response = new AventureiroResponse(aventureiro);
+        
+        long totalMissoes = participacaoRepository.countByAventureiroId(id);
+        response.setTotalMissoes(totalMissoes);
+        
+        List<Participacao> historico = participacaoRepository.findUltimaMissao(id, PageRequest.of(0, 1));
+        if (!historico.isEmpty()) {
+            response.setUltimaMissao(historico.get(0).getMissao().getTitulo());
+        } else {
+            response.setUltimaMissao("Nenhuma missão concluída.");
+        }
+        
+        return ResponseEntity.ok(response);
     }
 
-    /**
-     * Atualiza dados permitidos de um aventureiro existente (nome, classe, nível).
-     * Não permite alterar ID, status ativo ou companheiro.
-     *
-     * @param id identificador do aventureiro
-     * @param request JSON com novos dados
-     * @return O aventureiro atualizado
-     */
     @PutMapping("/{id}")
     public ResponseEntity<AventureiroResponse> atualizar(@PathVariable Long id, @Valid @RequestBody AventureiroRequest request) {
-        Aventureiro aventureiro = repository.findById(id)
+        Aventureiro aventureiro = aventureiroRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("aventureiro não encontrado"));
 
         aventureiro.setNome(request.getNome());
         aventureiro.setClasse(request.getClasse());
         aventureiro.setNivel(request.getNivel());
 
-        // O save() atualiza porque o ID já existe
-        Aventureiro atualizado = repository.save(aventureiro);
-        
-        return ResponseEntity.ok(new AventureiroResponse(atualizado));
+        return ResponseEntity.ok(new AventureiroResponse(aventureiroRepository.save(aventureiro)));
     }
 
-    /**
-     * Encerra o vínculo de um aventureiro com a guilda, marcando-o como inativo.
-     *
-     * @param id identificador do aventureiro
-     * @return Status 204 No Content para confirmar sucesso sem corpo na resposta
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> encerrarVinculo(@PathVariable Long id) {
-        Aventureiro aventureiro = repository.findById(id)
+        Aventureiro aventureiro = aventureiroRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("aventureiro não encontrado"));
-
         aventureiro.setAtivo(false);
-        repository.save(aventureiro);
-        
+        aventureiroRepository.save(aventureiro);
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Reativa o vínculo de um aventureiro com a guilda.
-     *
-     * @param id identificador do aventureiro
-     * @return Dados atualizados do aventureiro reativado
-     */
     @PatchMapping("/{id}/recrutar")
     public ResponseEntity<AventureiroResponse> recrutar(@PathVariable Long id) {
-        Aventureiro aventureiro = repository.findById(id)
+        Aventureiro aventureiro = aventureiroRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("aventureiro não encontrado"));
-
         aventureiro.setAtivo(true);
-        Aventureiro atualizado = repository.save(aventureiro);
-
-        return ResponseEntity.ok(new AventureiroResponse(atualizado));
+        return ResponseEntity.ok(new AventureiroResponse(aventureiroRepository.save(aventureiro)));
     }
 
-    /**
-     * Define ou substitui o companheiro de um aventureiro existente.
-     *
-     * @param id identificador do aventureiro
-     * @param request JSON contendo dados do novo companheiro (nome, especie, lealdade)
-     * @return Aventureiro atualizado com o companheiro recém-criado
-     */
     @PutMapping("/{id}/companheiro")
-    public ResponseEntity<AventureiroResponse> definirCompanheiro(@PathVariable Long id, @Valid @RequestBody CompanheiroRequest request) {
-        Aventureiro aventureiro = repository.findById(id)
+    public ResponseEntity<AventureiroResponse> definirCompanheiro(
+            @PathVariable Long id, @Valid @RequestBody CompanheiroRequest request) {
+        Aventureiro aventureiro = aventureiroRepository.findByIdWithCompanheiro(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("aventureiro não encontrado"));
 
-        Companheiro companheiro = new Companheiro(request.getNome(), request.getEspecie(), request.getLealdade());
+        Companheiro companheiro = aventureiro.getCompanheiro();
+        if (companheiro == null) {
+            companheiro = new Companheiro();
+            companheiro.setAventureiro(aventureiro);
+        }
+        companheiro.setNome(request.getNome());
+        companheiro.setEspecie(request.getEspecie());
+        companheiro.setLealdade(request.getLealdade());
         aventureiro.setCompanheiro(companheiro);
-        Aventureiro atualizado = repository.save(aventureiro);
 
-        return ResponseEntity.ok(new AventureiroResponse(atualizado));
+        return ResponseEntity.ok(new AventureiroResponse(aventureiroRepository.save(aventureiro)));
     }
 
-    /**
-     * Remove o companheiro vinculado ao aventureiro.
-     *
-     * @param id identificador do aventureiro
-     * @return Confirmação sem corpo da exclusão lógica do companheiro (Status 204 No Content)
-     */
     @DeleteMapping("/{id}/companheiro")
     public ResponseEntity<Void> removerCompanheiro(@PathVariable Long id) {
-        Aventureiro aventureiro = repository.findById(id)
+        Aventureiro aventureiro = aventureiroRepository.findByIdWithCompanheiro(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("aventureiro não encontrado"));
-
         aventureiro.setCompanheiro(null);
-        repository.save(aventureiro);
-        
+        aventureiroRepository.save(aventureiro);
         return ResponseEntity.noContent().build();
     }
 }
