@@ -1,4 +1,4 @@
-# 🐉 Guilda de Aventureiros - TP2
+# Guilda de Aventureiros - TP2
 
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.4.3-brightgreen)
 ![Java](https://img.shields.io/badge/Java-17-blue)
@@ -8,12 +8,12 @@
 Este projeto é a segunda parte (TP2) da disciplina de **Desenvolvimento de Aplicações Corporativas e Escaláveis**.  
 O objetivo central foi migrar a aplicação de gerenciamento da guilda, antes armazenada apenas em memória, para uma estrutura robusta conectada a um banco de dados relacional (PostgreSQL) focado em **duas grandes frentes**: o mapeamento de um sistema de auditoria legado e a criação do novo domínio para missões e aventureiros.
 
-## 🗄️ Arquitetura de Dados (Schemas)
+## Arquitetura de Dados (Schemas)
 
 A aplicação agora persiste seus dados em dois schemas independentes dentro do PostgreSQL:
 
 ### 1. `audit` (Sistema Legado e Intocável)
-O banco de dados fornecido no Docker já continha um schema de auditoria focado em controle de acesso:
+O banco de dados fornecido pelo professor no Docker já continha um schema de auditoria focado em controle de acesso (https://hub.docker.com/r/leogloriainfnet/postgres-tp2-spring):
 - **Tabelas mapeadas**: `organizacoes`, `usuarios`, `roles`, `permissions`, `api_keys` e `audit_entries`.
 - **Regra de Negócio**: Nenhuma alteração estrutural pôde ser feita neste schema (`ddl-auto=validate`).
 - **Implementação**: Foram criadas **Entidades JPA** com os devidos relacionamentos bidirecionais `@ManyToMany` (ex: `user_roles`) sem criar entidades extras para as tabelas de junção, utilizando apenas a anotação `@JoinTable`.
@@ -26,7 +26,7 @@ Este schema acomodou o desenvolvimento das novas lógicas de negócio:
 
 ---
 
-## 🚀 Como Executar o Projeto Localmente
+## Como Executar o Projeto Localmente
 
 Para que os testes e a API funcionem adequadamente, é estritamente necessário ter o banco de dados em execução. Toda a configuração da aplicação espera encontrar o PostgreSQL rodando na porta `5432`.
 
@@ -59,7 +59,7 @@ mvn test
 
 ---
 
-## 🛠️ Relatórios, Consultas e Funcionalidades
+## Relatórios, Consultas e Funcionalidades
 
 Foram implementados endpoints completos (REST) baseados na construção limpa de `DTOs` e métodos customizados com `JPQL` no Spring Data.  Alguns destaques:
 
@@ -68,6 +68,3 @@ Foram implementados endpoints completos (REST) baseados na construção limpa de
 *   **Perfil Completo**: É injetado num DTO único todos os dados do Aventureiro, mais dados da tabela de Participações (como *"Total de Histórico"* e o *"Título da Última Missão"*).
 *   **Busca Parcial**: Endpoint de busca paginável buscando aventureiros ignorando case sensitivity (`LIKE %nome%`).
 
----
-
-*📝 Desenvolvido para o Bloco de Desenvolvimento Back-end Avançado (TP2).*
