@@ -61,6 +61,16 @@ mvn test
 ```
 *(O relatório gerado pelo Maven do Surefire indicará `BUILD SUCCESS`).*
 
+### 🌐 Passo 4: Conexão Remota (AWS / Apresentação)
+
+Se precisar conectar em um banco externo durante a banca:
+1. Abra o arquivo `src/main/resources/application-aws.properties`.
+2. Troque o IP, usuário e senha pelos dados que o professor passar.
+3. No terminal, rode o comando:
+   ```bash
+   mvn spring-boot:run -Dspring.profiles.active=aws
+   ```
+
 ---
 
 ## Relatórios, Consultas e Funcionalidades
