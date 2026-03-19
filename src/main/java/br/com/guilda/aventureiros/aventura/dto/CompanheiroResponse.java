@@ -1,6 +1,6 @@
-package br.com.guilda.aventureiros.dto;
+package br.com.guilda.aventureiros.aventura.dto;
 
-import br.com.guilda.aventureiros.domain.Especie;
+import br.com.guilda.aventureiros.aventura.domain.Especie;
 
 public class CompanheiroResponse {
     private String nome;

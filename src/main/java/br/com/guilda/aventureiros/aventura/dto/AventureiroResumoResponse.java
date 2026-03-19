@@ -1,7 +1,7 @@
-package br.com.guilda.aventureiros.dto;
+package br.com.guilda.aventureiros.aventura.dto;
 
-import br.com.guilda.aventureiros.domain.Aventureiro;
-import br.com.guilda.aventureiros.domain.Classe;
+import br.com.guilda.aventureiros.aventura.domain.Aventureiro;
+import br.com.guilda.aventureiros.aventura.domain.Classe;
 
 /**
  * Representa um resumo dos dados de um Aventureiro, usado principalmente em listagens.

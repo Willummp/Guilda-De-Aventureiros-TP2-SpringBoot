@@ -1,6 +1,6 @@
-package br.com.guilda.aventureiros.dto;
+package br.com.guilda.aventureiros.aventura.dto;
 
-import br.com.guilda.aventureiros.domain.Especie;
+import br.com.guilda.aventureiros.aventura.domain.Especie;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;

@@ -1,4 +1,4 @@
-package br.com.guilda.aventureiros.exception;
+package br.com.guilda.aventureiros.aventura.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

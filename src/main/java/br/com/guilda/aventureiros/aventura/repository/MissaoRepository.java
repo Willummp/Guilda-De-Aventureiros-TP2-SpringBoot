@@ -1,8 +1,8 @@
-package br.com.guilda.aventureiros.repository;
+package br.com.guilda.aventureiros.aventura.repository;
 
-import br.com.guilda.aventureiros.domain.Missao;
-import br.com.guilda.aventureiros.domain.NivelPerigo;
-import br.com.guilda.aventureiros.domain.StatusMissao;
+import br.com.guilda.aventureiros.aventura.domain.Missao;
+import br.com.guilda.aventureiros.aventura.domain.NivelPerigo;
+import br.com.guilda.aventureiros.aventura.domain.StatusMissao;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,7 +15,11 @@ import java.time.OffsetDateTime;
 @Repository
 public interface MissaoRepository extends JpaRepository<Missao, Long> {
 
-    // Listagem com filtros por status, nível de perigo e intervalo de datas (Parte 3)
+    /**
+     * Busca missões utilizando filtros dinâmicos.
+     * O uso de COALESCE permite que, se um parâmetro for nulo, a consulta utilize o próprio valor da coluna,
+     * tornando o filtro opcional sem a necessidade de múltiplas queries ou critérios dinâmicos complexos.
+     */
     @Query("SELECT m FROM Missao m WHERE " +
            "m.status = COALESCE(:status, m.status) AND " +
            "m.nivelPerigo = COALESCE(:nivelPerigo, m.nivelPerigo) AND " +

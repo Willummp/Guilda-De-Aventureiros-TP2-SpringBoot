@@ -16,7 +16,11 @@ A aplicação agora persiste seus dados em dois schemas independentes dentro do 
 O banco de dados fornecido pelo professor no Docker já continha um schema de auditoria focado em controle de acesso (https://hub.docker.com/r/leogloriainfnet/postgres-tp2-spring):
 - **Tabelas mapeadas**: `organizacoes`, `usuarios`, `roles`, `permissions`, `api_keys` e `audit_entries`.
 - **Regra de Negócio**: Nenhuma alteração estrutural pôde ser feita neste schema (`ddl-auto=validate`).
-- **Implementação**: Foram criadas **Entidades JPA** com os devidos relacionamentos bidirecionais `@ManyToMany` (ex: `user_roles`) sem criar entidades extras para as tabelas de junção, utilizando apenas a anotação `@JoinTable`.
+- **Descoberta via SQL**: Identificamos a estrutura do banco através de consultas ao `information_schema.columns`, o que nos permitiu mapear corretamente nomes em `snake_case` para `camelCase` no Java.
+- **Implementação Avançada**: 
+    - **JSONB**: Mapeamento de colunas de auditoria (`diff`, `metadata`) usando `@JdbcTypeCode(SqlTypes.JSON)`.
+    - **INET**: Suporte nativo ao tipo de endereço IP do PostgreSQL.
+    - **N:N**: Relacionamentos bidirecionais `@ManyToMany` (ex: `user_roles`) sem criar entidades extras para as tabelas de junção, utilizando apenas a anotação `@JoinTable(schema = "audit", ...)`.
 
 ### 2. `aventura` (Novo Domínio da Guilda)
 Este schema acomodou o desenvolvimento das novas lógicas de negócio:

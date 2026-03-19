@@ -1,4 +1,4 @@
-package br.com.guilda.aventureiros.domain;
+package br.com.guilda.aventureiros.aventura.domain;
 
 import br.com.guilda.aventureiros.audit.domain.Organizacao;
 import br.com.guilda.aventureiros.audit.domain.Usuario;

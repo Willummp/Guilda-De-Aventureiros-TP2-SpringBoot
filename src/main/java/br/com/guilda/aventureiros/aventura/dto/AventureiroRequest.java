@@ -1,6 +1,6 @@
-package br.com.guilda.aventureiros.dto;
+package br.com.guilda.aventureiros.aventura.dto;
 
-import br.com.guilda.aventureiros.domain.Classe;
+import br.com.guilda.aventureiros.aventura.domain.Classe;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

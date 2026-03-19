@@ -1,4 +1,4 @@
-package br.com.guilda.aventureiros.exception;
+package br.com.guilda.aventureiros.aventura.exception;
 
 /**
  * Exceção lançada quando um recurso (Aventureiro, Companheiro, etc) não é encontrado no sistema.

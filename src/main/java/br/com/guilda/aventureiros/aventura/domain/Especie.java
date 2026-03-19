@@ -1,4 +1,4 @@
-package br.com.guilda.aventureiros.domain;
+package br.com.guilda.aventureiros.aventura.domain;
 
 /**
  * Enumeração contendo as espécies permitidas para um Companheiro da guilda.

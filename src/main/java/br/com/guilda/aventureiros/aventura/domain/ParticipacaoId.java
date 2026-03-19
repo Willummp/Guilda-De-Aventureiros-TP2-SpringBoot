@@ -1,4 +1,4 @@
-package br.com.guilda.aventureiros.domain;
+package br.com.guilda.aventureiros.aventura.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

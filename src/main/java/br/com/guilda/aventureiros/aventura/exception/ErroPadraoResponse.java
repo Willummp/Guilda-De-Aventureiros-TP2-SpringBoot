@@ -1,4 +1,4 @@
-package br.com.guilda.aventureiros.exception;
+package br.com.guilda.aventureiros.aventura.exception;
 
 import java.util.List;
 

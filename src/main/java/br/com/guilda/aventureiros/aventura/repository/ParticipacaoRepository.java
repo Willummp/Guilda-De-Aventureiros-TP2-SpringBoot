@@ -1,7 +1,7 @@
-package br.com.guilda.aventureiros.repository;
+package br.com.guilda.aventureiros.aventura.repository;
 
-import br.com.guilda.aventureiros.domain.Participacao;
-import br.com.guilda.aventureiros.domain.ParticipacaoId;
+import br.com.guilda.aventureiros.aventura.domain.Participacao;
+import br.com.guilda.aventureiros.aventura.domain.ParticipacaoId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,7 +13,9 @@ import java.util.List;
 @Repository
 public interface ParticipacaoRepository extends JpaRepository<Participacao, ParticipacaoId> {
 
-    // Participações de uma missão específica (detalhamento - Parte 3)
+    /**
+     * Retorna a lista de participações de uma missão, carregando os dados do aventureiro (JOIN FETCH).
+     */
     @Query("SELECT p FROM Participacao p JOIN FETCH p.aventureiro WHERE p.missao.id = :missaoId")
     List<Participacao> findByMissaoId(@Param("missaoId") Long missaoId);
 
@@ -25,7 +27,12 @@ public interface ParticipacaoRepository extends JpaRepository<Participacao, Part
     List<Participacao> findUltimaMissao(@Param("aventureiroId") Long aventureiroId,
                                         org.springframework.data.domain.Pageable pageable);
 
-    // Ranking de participação - Parte 3
+    /**
+     * Gera um ranking de aventureiros baseado no volume de missões e recompensas.
+     * - COUNT(p): Total de missões realizadas.
+     * - SUM(p.recompensaOuro): Soma total de ouro ganho.
+     * - SUM(CASE...): Conta quantas vezes o aventureiro foi o MVP usando lógica condicional no SQL.
+     */
     @Query("SELECT p.aventureiro.id, p.aventureiro.nome, " +
            "COUNT(p), SUM(p.recompensaOuro), SUM(CASE WHEN p.mvp = true THEN 1 ELSE 0 END) " +
            "FROM Participacao p " +

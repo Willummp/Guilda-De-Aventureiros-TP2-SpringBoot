@@ -1,4 +1,4 @@
-package br.com.guilda.aventureiros.domain;
+package br.com.guilda.aventureiros.aventura.domain;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
