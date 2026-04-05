@@ -60,6 +60,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
     }
 
+    @ExceptionHandler(RegraNegocioException.class)
+    public ResponseEntity<ErroPadraoResponse> handleRegraNegocio(RegraNegocioException ex) {
+        List<String> detalhes = new ArrayList<>();
+        detalhes.add(ex.getMessage());
+        ErroPadraoResponse erro = new ErroPadraoResponse("regra de negócio", detalhes);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+    }
+
     /**
      * Tratamento de fallback para qualquer outro erro não mapeado explicitamente.
      */

@@ -12,6 +12,7 @@ import br.com.guilda.aventureiros.aventura.dto.AventureiroResponse;
 import br.com.guilda.aventureiros.aventura.dto.AventureiroResumoResponse;
 import br.com.guilda.aventureiros.aventura.dto.CompanheiroRequest;
 import br.com.guilda.aventureiros.aventura.exception.RecursoNaoEncontradoException;
+import br.com.guilda.aventureiros.aventura.exception.RegraNegocioException;
 import br.com.guilda.aventureiros.aventura.repository.AventureiroRepository;
 import br.com.guilda.aventureiros.aventura.repository.ParticipacaoRepository;
 import br.com.guilda.aventureiros.aventura.domain.Participacao;
@@ -56,6 +57,9 @@ public class AventureiroController {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("organização não encontrada"));
         Usuario usuario = usuarioRepository.findById(request.getUsuarioResponsavelId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("usuário responsável não encontrado"));
+        if (!usuario.getOrganizacao().getId().equals(org.getId())) {
+            throw new RegraNegocioException("usuário responsável deve pertencer à mesma organização do aventureiro");
+        }
 
         Aventureiro novo = new Aventureiro(request.getNome(), request.getClasse(), request.getNivel());
         novo.setOrganizacao(org);
@@ -72,13 +76,15 @@ public class AventureiroController {
             @RequestParam(required = false) Integer nivel,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "nome") String sortBy
+            @RequestParam(defaultValue = "nome") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir
     ) {
         if (page < 0) page = 0;
         if (size < 1) size = 1;
         if (size > 50) size = 50;
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        Sort sort = sortAventureiro(sortBy, sortDir);
+        Pageable pageable = PageRequest.of(page, size, sort);
         Page<Aventureiro> resultado = aventureiroRepository.findByFiltros(classe, ativo, nivel, pageable);
 
         List<AventureiroResumoResponse> body = resultado.getContent().stream()
@@ -98,9 +104,12 @@ public class AventureiroController {
     public ResponseEntity<List<AventureiroResumoResponse>> buscarPorNome(
             @RequestParam String nome,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "nome") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir
     ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("nome"));
+        Sort sort = sortAventureiro(sortBy, sortDir);
+        Pageable pageable = PageRequest.of(page, size, sort);
         Page<Aventureiro> resultado = aventureiroRepository.findByNomeContainingIgnoreCase(nome, pageable);
 
         List<AventureiroResumoResponse> body = resultado.getContent().stream()
@@ -123,7 +132,7 @@ public class AventureiroController {
         
         AventureiroResponse response = new AventureiroResponse(aventureiro);
         
-        long totalMissoes = participacaoRepository.countByAventureiroId(id);
+        long totalMissoes = participacaoRepository.countByAventureiro_Id(id);
         response.setTotalMissoes(totalMissoes);
         
         List<Participacao> historico = participacaoRepository.findUltimaMissao(id, PageRequest.of(0, 1));
@@ -191,5 +200,13 @@ public class AventureiroController {
         aventureiro.setCompanheiro(null);
         aventureiroRepository.save(aventureiro);
         return ResponseEntity.noContent().build();
+    }
+
+    /** Ordenação permitida: nome ou nível (demais valores caem no padrão nome). */
+    private static Sort sortAventureiro(String sortBy, String sortDir) {
+        String key = sortBy == null ? "" : sortBy.toLowerCase();
+        String prop = "nivel".equals(key) ? "nivel" : "nome";
+        Sort.Direction dir = "desc".equalsIgnoreCase(sortDir) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        return Sort.by(dir, prop);
     }
 }

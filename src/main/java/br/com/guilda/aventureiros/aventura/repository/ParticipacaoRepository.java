@@ -19,11 +19,10 @@ public interface ParticipacaoRepository extends JpaRepository<Participacao, Part
     @Query("SELECT p FROM Participacao p JOIN FETCH p.aventureiro WHERE p.missao.id = :missaoId")
     List<Participacao> findByMissaoId(@Param("missaoId") Long missaoId);
 
-    // Total de participações de um aventureiro (para visualização completa - Parte 3)
-    long countByAventureiroId(@Param("aventureiroId") Long aventureiroId);
+    long countByAventureiro_Id(Long aventureiroId);
 
     // Última missão de um aventureiro (Parte 3)
-    @Query("SELECT p FROM Participacao p WHERE p.aventureiro.id = :aventureiroId ORDER BY p.createdAt DESC")
+    @Query("SELECT p FROM Participacao p JOIN FETCH p.missao WHERE p.aventureiro.id = :aventureiroId ORDER BY p.createdAt DESC")
     List<Participacao> findUltimaMissao(@Param("aventureiroId") Long aventureiroId,
                                         org.springframework.data.domain.Pageable pageable);
 
